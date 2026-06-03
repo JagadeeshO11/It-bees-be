@@ -1,0 +1,77 @@
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-02T17:08:17.433Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T06:47:12.164Z"}
+{"level":"error","message":"\nInvalid `prisma.job.findMany()` invocation in\nC:\\Users\\Jagadeesh osuru\\Desktop\\abc-be\\src\\controllers\\publicController.js:26:35\n\n  23 // Jobs\n  24 const getJobs = async (req, res, next) => {\n  25   try {\n→ 26     const jobs = await prisma.job.findMany(\nTimed out fetching a new connection from the connection pool. More info: http://pris.ly/d/connection-pool (Current connection pool timeout: 10, connection limit: 9) - GET /api/public/jobs - ::1","timestamp":"2026-06-03T06:52:27.592Z"}
+{"level":"error","message":"\nInvalid `prisma.course.findMany()` invocation in\nC:\\Users\\Jagadeesh osuru\\Desktop\\abc-be\\src\\controllers\\publicController.js:13:41\n\n  10 // Courses\n  11 const getCourses = async (req, res, next) => {\n  12   try {\n→ 13     const courses = await prisma.course.findMany(\nTimed out fetching a new connection from the connection pool. More info: http://pris.ly/d/connection-pool (Current connection pool timeout: 10, connection limit: 9) - GET /api/public/courses - ::1","timestamp":"2026-06-03T06:52:27.595Z"}
+{"level":"error","message":"\nInvalid `prisma.job.findMany()` invocation in\nC:\\Users\\Jagadeesh osuru\\Desktop\\abc-be\\src\\controllers\\publicController.js:26:35\n\n  23 // Jobs\n  24 const getJobs = async (req, res, next) => {\n  25   try {\n→ 26     const jobs = await prisma.job.findMany(\nCan't reach database server at `ep-crimson-river-apfrpid1.c-7.us-east-1.aws.neon.tech:5432`\n\nPlease make sure your database server is running at `ep-crimson-river-apfrpid1.c-7.us-east-1.aws.neon.tech:5432`. - GET /api/public/jobs - ::1","timestamp":"2026-06-03T06:52:27.622Z"}
+{"level":"error","message":"\nInvalid `prisma.course.findMany()` invocation in\nC:\\Users\\Jagadeesh osuru\\Desktop\\abc-be\\src\\controllers\\publicController.js:13:41\n\n  10 // Courses\n  11 const getCourses = async (req, res, next) => {\n  12   try {\n→ 13     const courses = await prisma.course.findMany(\nCan't reach database server at `ep-crimson-river-apfrpid1.c-7.us-east-1.aws.neon.tech:5432`\n\nPlease make sure your database server is running at `ep-crimson-river-apfrpid1.c-7.us-east-1.aws.neon.tech:5432`. - GET /api/public/courses - ::1","timestamp":"2026-06-03T06:52:27.624Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T06:54:22.244Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T10:39:17.851Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T10:42:35.739Z"}
+{"level":"info","message":"Email sent: <a492d957-e622-904a-8ba9-3c0b489c632b@itbeesglobal.com>","timestamp":"2026-06-03T10:50:49.169Z"}
+{"level":"info","message":"Email sent: <41d157b2-27fb-14db-ba89-95c6c5f4af12@itbeesglobal.com>","timestamp":"2026-06-03T10:53:30.054Z"}
+{"level":"error","message":"OTP expired or not found - POST /api/public/purchase/initiate - ::1","timestamp":"2026-06-03T10:53:31.161Z"}
+{"level":"info","message":"Email sent: <9c1f1de2-9682-6fb2-8b68-0f4dbcb55577@itbeesglobal.com>","timestamp":"2026-06-03T10:53:33.975Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T10:54:47.624Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T10:54:54.213Z"}
+{"level":"info","message":"Email sent: <263dc52a-c9ae-8677-eb06-76cd47bb283e@itbeesglobal.com>","timestamp":"2026-06-03T10:56:18.345Z"}
+{"level":"info","message":"Email sent: <2e038e25-4756-98d5-3366-0791a07efa6e@itbeesglobal.com>","timestamp":"2026-06-03T10:59:54.041Z"}
+{"level":"info","message":"Email sent: <389e6565-4214-0457-d25a-b31b1eceb648@itbeesglobal.com>","timestamp":"2026-06-03T10:59:58.018Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T11:01:16.454Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T11:35:44.545Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T11:36:10.026Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T11:36:21.049Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T11:37:02.503Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T11:49:54.218Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T13:09:57.546Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T13:10:18.823Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T13:10:28.147Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T13:10:37.504Z"}
+{"level":"info","message":"Email sent: <6acb9d2a-733e-4ee6-b40e-86962efc0bef@itbeesglobal.com>","timestamp":"2026-06-03T13:18:54.914Z"}
+{"level":"info","message":"Email sent: <19704aa9-458b-11d1-f0c6-b8e88dc7afcd@itbeesglobal.com>","timestamp":"2026-06-03T13:18:59.420Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T13:21:47.936Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T13:22:47.102Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T13:22:52.628Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T13:25:47.814Z"}
+{"level":"info","message":"Email sent: <6ee8d9f5-6adc-5583-d087-2a0f4fce0d5c@itbeesglobal.com>","timestamp":"2026-06-03T13:25:56.302Z"}
+{"level":"info","message":"Email sent: <9205a437-d44c-9443-3ded-4ba94121142e@itbeesglobal.com>","timestamp":"2026-06-03T13:26:00.193Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T13:26:10.218Z"}
+{"level":"error","message":"\nInvalid `prisma.jobApplication.create()` invocation in\nC:\\Users\\Jagadeesh osuru\\Desktop\\abc-be\\src\\controllers\\publicController.js:78:53\n\n  75 \n  76 const job = await prisma.job.findUnique({ where: { id: jobId } });\n  77 \n→ 78 const application = await prisma.jobApplication.create(\nForeign key constraint violated on the constraint: `job_applications_jobId_fkey` - POST /api/public/jobs/apply - ::1","timestamp":"2026-06-03T13:26:21.938Z"}
+{"level":"info","message":"Email sent: <e4cb6416-53bf-df72-7bf4-e60e7005d8fd@itbeesglobal.com>","timestamp":"2026-06-03T13:26:58.977Z"}
+{"level":"info","message":"Email sent: <8da47d54-8c11-26b1-e8e7-af0295463b5a@itbeesglobal.com>","timestamp":"2026-06-03T13:27:02.964Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T13:28:39.198Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T13:32:11.172Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T13:32:14.767Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T13:32:20.712Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T14:03:00.705Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T14:03:07.395Z"}
+{"level":"error","message":"\nInvalid `prisma.jobApplication.findFirst()` invocation in\nC:\\Users\\Jagadeesh osuru\\Desktop\\abc-be\\src\\controllers\\publicController.js:59:50\n\n  56 }\n  57 \n  58 // Duplicate check — same email + same job\n→ 59 const existing = await prisma.jobApplication.findFirst(\nCan't reach database server at `ep-crimson-river-apfrpid1.c-7.us-east-1.aws.neon.tech:5432`\n\nPlease make sure your database server is running at `ep-crimson-river-apfrpid1.c-7.us-east-1.aws.neon.tech:5432`. - POST /api/public/jobs/apply - ::1","timestamp":"2026-06-03T14:04:07.720Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T14:10:32.982Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T14:18:46.778Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T14:19:11.901Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T14:19:26.051Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T14:19:52.968Z"}
+{"level":"error","message":"Unknown API key your_api_key - POST /api/admin/upload/image - ::1","timestamp":"2026-06-03T14:31:39.111Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T14:33:04.571Z"}
+{"level":"error","message":"Unknown API key your_api_key - POST /api/admin/upload/image - ::1","timestamp":"2026-06-03T14:34:17.320Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T14:39:00.225Z"}
+{"level":"info","message":"Email sent: <b843d0d4-ff2b-3cab-dc7b-1cc90d074698@itbeesglobal.com>","timestamp":"2026-06-03T14:44:37.703Z"}
+{"level":"info","message":"Email sent: <9ded6285-cc65-ae41-4d37-788c91e4ca04@itbeesglobal.com>","timestamp":"2026-06-03T14:46:21.965Z"}
+{"level":"info","message":"Email sent: <44df9a27-ee7b-f323-bc8f-6d9eaf32d6fd@itbeesglobal.com>","timestamp":"2026-06-03T14:46:25.712Z"}
+{"level":"error","message":"\nInvalid `prisma.job.findMany()` invocation in\nC:\\Users\\Jagadeesh osuru\\Desktop\\abc-be\\src\\controllers\\publicController.js:26:35\n\n  23 // Jobs\n  24 const getJobs = async (req, res, next) => {\n  25   try {\n→ 26     const jobs = await prisma.job.findMany(\nTimed out fetching a new connection from the connection pool. More info: http://pris.ly/d/connection-pool (Current connection pool timeout: 15, connection limit: 9) - GET /api/public/jobs - ::1","timestamp":"2026-06-03T14:46:55.618Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T14:54:43.811Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T15:14:08.746Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T15:53:56.345Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T16:09:38.653Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T16:13:03.441Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T17:31:57.102Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T17:37:24.096Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T17:39:37.456Z"}
+{"level":"info","message":"Email sent: <5a4931c7-7acd-113b-5a45-a154ff2d075c@itbeesglobal.com>","timestamp":"2026-06-03T17:40:47.963Z"}
+{"level":"info","message":"Email sent: <6491906d-c0a5-8ef0-2ed5-1ef7977a0fa3@itbeesglobal.com>","timestamp":"2026-06-03T17:40:48.122Z"}
+{"level":"info","message":"Email sent: <82645cd3-4216-1b29-9b35-e535e9f408b8@itbeesglobal.com>","timestamp":"2026-06-03T17:40:48.431Z"}
+{"level":"info","message":"Email sent: <746d247e-c556-cb2a-980b-c94e7ec3095c@itbeesglobal.com>","timestamp":"2026-06-03T17:40:48.711Z"}
+{"level":"info","message":"Email sent: <6adf2f65-5f21-d7b4-2eca-b978097d9f8e@itbeesglobal.com>","timestamp":"2026-06-03T17:54:00.868Z"}
+{"level":"info","message":"Email sent: <88e7245e-e018-1578-24e8-23f7786d97f3@itbeesglobal.com>","timestamp":"2026-06-03T17:54:01.105Z"}
+{"level":"info","message":"Email sent: <7e4074a1-db5c-7423-3b7a-47abf795853c@itbeesglobal.com>","timestamp":"2026-06-03T17:59:05.305Z"}
+{"level":"info","message":"Email sent: <4aff7ff0-a5c0-4216-92e1-fb99c86bd769@itbeesglobal.com>","timestamp":"2026-06-03T17:59:06.144Z"}
+{"level":"info","message":"Email sent: <2454a42f-6598-92b1-60cc-069d61007b6d@itbeesglobal.com>","timestamp":"2026-06-03T18:01:28.315Z"}

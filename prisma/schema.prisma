@@ -1,0 +1,293 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  ADMIN
+}
+
+enum PurchaseStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum OtpType {
+  PURCHASE
+  REGISTRATION
+}
+
+enum InquiryStatus {
+  OPEN
+  REPLIED
+  ARCHIVED
+}
+
+enum AppStatus {
+  PENDING
+  SHORTLISTED
+  HIRED
+  REJECTED
+}
+
+model Admin {
+  id        String         @id @default(uuid())
+  email     String         @unique
+  password  String
+  name      String
+  role      AdminRole      @default(ADMIN)
+  sessions  AdminSession[]
+  auditLogs AuditLog[]
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  deletedAt DateTime?
+
+  @@map("admins")
+}
+
+model AdminSession {
+  id           String   @id @default(uuid())
+  adminId      String
+  admin        Admin    @relation(fields: [adminId], references: [id])
+  refreshToken String   @unique
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+
+  @@map("admin_sessions")
+}
+
+model Course {
+  id           String           @id @default(uuid())
+  title        String
+  category     String
+  hours        Int
+  duration     String
+  price        Float
+  description  String
+  rating       String?
+  icon         String?
+  image        String?
+  isArchived   Boolean          @default(false)
+  purchases    CoursePurchase[]
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  deletedAt    DateTime?
+
+  @@map("courses")
+}
+
+model CoursePurchase {
+  id            String         @id @default(uuid())
+  courseId      String
+  course        Course         @relation(fields: [courseId], references: [id])
+  name          String
+  email         String
+  phone         String
+  address       String   @default("")
+  city          String   @default("")
+  state         String   @default("")
+  pincode       String   @default("")
+  razorpayOrderId String?      @unique
+  paymentId     String?        @unique
+  amount        Float
+  status        PurchaseStatus @default(PENDING)
+  invoice       Invoice?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  deletedAt     DateTime?
+
+  @@map("course_purchases")
+}
+
+model OtpVerification {
+  id        String   @id @default(uuid())
+  email     String
+  otpHash   String
+  type      OtpType
+  expiresAt DateTime
+  attempts  Int      @default(0)
+  isVerified Boolean @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("otp_verifications")
+}
+
+model Payment {
+  id              String   @id @default(uuid())
+  razorpayOrderId String   @unique
+  paymentId       String?  @unique
+  signature       String?
+  amount          Float
+  status          String
+  method          String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("payments")
+}
+
+model PaymentLog {
+  id         String   @id @default(uuid())
+  eventType  String
+  rawPayload Json
+  createdAt  DateTime @default(now())
+
+  @@map("payment_logs")
+}
+
+model Invoice {
+  id             String         @id @default(uuid())
+  purchaseId     String         @unique
+  purchase       CoursePurchase @relation(fields: [purchaseId], references: [id])
+  invoiceNumber  String         @unique
+  filePath       String?
+  createdAt      DateTime       @default(now())
+
+  @@map("invoices")
+}
+
+model Job {
+  id           String           @id @default(uuid())
+  title        String
+  department   String
+  location     String
+  type         String
+  salary       String
+  description  String
+  requirements Json             // Array of strings
+  isArchived   Boolean          @default(false)
+  applications JobApplication[]
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  deletedAt    DateTime?
+
+  @@map("jobs")
+}
+
+model JobApplication {
+  id         String    @id @default(uuid())
+  jobId      String
+  job        Job       @relation(fields: [jobId], references: [id])
+  name       String
+  email      String
+  phone      String
+  location   String
+  skills     String
+  experience String
+  education  String
+  resumePath String
+  status     AppStatus @default(PENDING)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
+
+  @@map("job_applications")
+}
+
+model AssessmentCategory {
+  id          String       @id @default(uuid())
+  name        String
+  description String?
+  assessments Assessment[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  deletedAt   DateTime?
+
+  @@map("assessment_categories")
+}
+
+model Assessment {
+  id           String               @id @default(uuid())
+  categoryId   String
+  category     AssessmentCategory   @relation(fields: [categoryId], references: [id])
+  title        String
+  instructions String?
+  totalMarks   Int                  @default(0)
+  isArchived   Boolean              @default(false)
+  questions    AssessmentQuestion[]
+  attempts     AssessmentAttempt[]
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  deletedAt    DateTime?
+
+  @@map("assessments")
+}
+
+model AssessmentQuestion {
+  id           String             @id @default(uuid())
+  assessmentId String
+  assessment   Assessment         @relation(fields: [assessmentId], references: [id])
+  questionText String
+  options      Json               // Array of objects {text, isCorrect}
+  correctAnswer Int
+  marks        Int                @default(1)
+  answers      AssessmentAnswer[]
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  @@map("assessment_questions")
+}
+
+model AssessmentAttempt {
+  id           String             @id @default(uuid())
+  assessmentId String
+  assessment   Assessment         @relation(fields: [assessmentId], references: [id])
+  name         String
+  email        String
+  phone        String
+  score        Int
+  timeTaken    Int                // in seconds
+  answers      AssessmentAnswer[]
+  submittedAt  DateTime           @default(now())
+  deletedAt    DateTime?
+
+  @@map("assessment_attempts")
+}
+
+model AssessmentAnswer {
+  id             String             @id @default(uuid())
+  attemptId      String
+  attempt        AssessmentAttempt  @relation(fields: [attemptId], references: [id])
+  questionId     String
+  question       AssessmentQuestion @relation(fields: [questionId], references: [id])
+  selectedAnswer Int
+  isCorrect      Boolean
+  createdAt      DateTime           @default(now())
+
+  @@map("assessment_answers")
+}
+
+model Inquiry {
+  id        String        @id @default(uuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String?
+  message   String
+  status    InquiryStatus @default(OPEN)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  deletedAt DateTime?
+
+  @@map("inquiries")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  adminId   String?
+  admin     Admin?   @relation(fields: [adminId], references: [id])
+  action    String
+  entity    String
+  entityId  String?
+  oldValue  Json?
+  newValue  Json?
+  createdAt DateTime @default(now())
+
+  @@map("audit_logs")
+}
