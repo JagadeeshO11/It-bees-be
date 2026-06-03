@@ -75,3 +75,4 @@
 {"level":"info","message":"Email sent: <7e4074a1-db5c-7423-3b7a-47abf795853c@itbeesglobal.com>","timestamp":"2026-06-03T17:59:05.305Z"}
 {"level":"info","message":"Email sent: <4aff7ff0-a5c0-4216-92e1-fb99c86bd769@itbeesglobal.com>","timestamp":"2026-06-03T17:59:06.144Z"}
 {"level":"info","message":"Email sent: <2454a42f-6598-92b1-60cc-069d61007b6d@itbeesglobal.com>","timestamp":"2026-06-03T18:01:28.315Z"}
+{"level":"info","message":"Server running on port 5000","timestamp":"2026-06-03T18:03:45.500Z"}
