@@ -4,8 +4,6 @@ const { createOrder, verifySignature } = require('../services/razorpayService');
 const { generateInvoicePdf } = require('../services/invoiceService');
 const { sendEmail } = require('../services/emailService');
 const logger = require('../utils/logger');
-const path = require('path');
-const fs = require('fs');
 
 // Courses
 const getCourses = async (req, res, next) => {
@@ -69,14 +67,20 @@ const applyForJob = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Invalid file type. Only PDF, DOC, and DOCX are allowed.' });
     }
 
-    const filename = `${Date.now()}_${resume.name.replace(/\s/g, '_')}`;
-    const uploadPath = path.join(__dirname, '../../uploads/resumes', filename);
-    await resume.mv(uploadPath);
+    // Upload resume to Cloudinary (works on serverless — no local filesystem needed)
+    const cloudinary = require('cloudinary').v2;
+    const resumeUrl = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { folder: 'itbees/resumes', resource_type: 'raw', public_id: `${Date.now()}_${resume.name.replace(/\s/g, '_')}` },
+        (error, result) => { if (error) return reject(error); resolve(result.secure_url); }
+      );
+      stream.end(resume.data);
+    });
 
     const job = await prisma.job.findUnique({ where: { id: jobId } });
 
     const application = await prisma.jobApplication.create({
-      data: { jobId, name, email, phone, location, skills, experience, education, resumePath: filename }
+      data: { jobId, name, email, phone, location, skills, experience, education, resumePath: resumeUrl }
     });
 
     const applicantHtml = `
@@ -99,12 +103,13 @@ const applyForJob = async (req, res, next) => {
           <tr><td style="padding:6px 0;color:#666">Experience</td><td>${experience}</td></tr>
           <tr><td style="padding:6px 0;color:#666">Education</td><td>${education}</td></tr>
           <tr><td style="padding:6px 0;color:#666">Skills</td><td>${skills}</td></tr>
+          <tr><td style="padding:6px 0;color:#666">Resume</td><td><a href="${resumeUrl}">View Resume</a></td></tr>
         </table>
       </div>`;
 
     await Promise.allSettled([
       sendEmail(email, `Application Received — ${job?.title || 'Position'}`, 'Application Received', applicantHtml),
-      sendEmail(process.env.ADMIN_EMAIL, `New Application: ${job?.title} — ${name}`, 'New Job Application', adminHtml, [{ filename: resume.name, path: uploadPath }])
+      sendEmail(process.env.ADMIN_EMAIL, `New Application: ${job?.title} — ${name}`, 'New Job Application', adminHtml)
     ]);
 
     res.status(201).json({ success: true, message: 'Application submitted successfully', data: application });
@@ -256,26 +261,26 @@ const verifyPayment = async (req, res, next) => {
       return p;
     });
 
-    // 3. Generate Invoice
+    // 3. Generate Invoice as Buffer
     const invoiceCount = await prisma.invoice.count();
     const invoiceNumber = `ITB${String(invoiceCount + 1).padStart(3, '0')}`;
-    const pdfPath = await generateInvoicePdf(purchase, invoiceNumber);
+    const pdfBuffer = await generateInvoicePdf(purchase, invoiceNumber);
 
     await prisma.invoice.create({
       data: {
         purchaseId: purchase.id,
         invoiceNumber,
-        filePath: path.basename(pdfPath)
+        filePath: invoiceNumber  // store invoice number as reference
       }
     });
 
-    // 4. Send Email with Invoice
+    // 4. Send Email with Invoice buffer as attachment
     const subject = `Order Confirmation & Invoice - ${purchase.course.title}`;
     const html = `<h3>Thank you for your purchase, ${purchase.name}!</h3><p>Attached is your invoice for the course: <b>${purchase.course.title}</b>.</p>`;
     
     const attachments = [{
       filename: `Invoice_${invoiceNumber}.pdf`,
-      path: pdfPath
+      content: pdfBuffer
     }];
 
     await sendEmail(purchase.email, subject, 'Thank you for your purchase!', html, attachments);

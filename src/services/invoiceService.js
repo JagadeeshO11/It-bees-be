@@ -1,6 +1,4 @@
 const PDFDocument = require('pdfkit');
-const fs = require('fs');
-const path = require('path');
 const logger = require('../utils/logger');
 
 const BRAND_BLUE = '#023295';
@@ -10,18 +8,15 @@ const MUTED = '#666666';
 const LIGHT_BG = '#f7f9fc';
 const BORDER = '#e2e8f0';
 
-const LOGO_PATH = process.env.COMPANY_LOGO_PATH
-  ? path.resolve(process.env.COMPANY_LOGO_PATH)
-  : path.join(__dirname, '../../uploads/logo.png');
-
-const generateInvoicePdf = async (purchase, invoiceNumber) => {
+// Returns a Buffer instead of writing to disk — works on serverless
+const generateInvoicePdf = (purchase, invoiceNumber) => {
   return new Promise((resolve, reject) => {
     try {
       const doc = new PDFDocument({ margin: 0, size: 'A4' });
-      const filename = `Invoice_${invoiceNumber}.pdf`;
-      const filePath = path.join(__dirname, '../../uploads/invoices', filename);
-      const stream = fs.createWriteStream(filePath);
-      doc.pipe(stream);
+      const chunks = [];
+      doc.on('data', chunk => chunks.push(chunk));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', reject);
 
       const W = 595.28;
       const M = 40;
@@ -29,13 +24,8 @@ const generateInvoicePdf = async (purchase, invoiceNumber) => {
       // ── Header Banner ──────────────────────────────────────────
       doc.rect(0, 0, W, 90).fill(BRAND_BLUE);
 
-      // Logo (if available)
-      const logoExists = fs.existsSync(LOGO_PATH);
-      const textStartX = logoExists ? M + 70 : M;
-      if (logoExists) {
-        try { doc.image(LOGO_PATH, M, 15, { height: 60, fit: [60, 60] }); } catch (_) {}
-      }
-
+      // Logo skipped on serverless (no local file access)
+      const textStartX = M;
       doc.fillColor('#ffffff').font('Helvetica-Bold').fontSize(20)
          .text('ITBEES GLOBAL PVT. LTD.', textStartX, 22);
       doc.font('Helvetica').fontSize(9).fillColor('rgba(255,255,255,0.75)')
@@ -177,8 +167,6 @@ const generateInvoicePdf = async (purchase, invoiceNumber) => {
          .text('ITBEES GLOBAL PVT. LTD.  ·  Gachibowli, Hyderabad, Telangana 500032  ·  GST: PENDING', 0, 826, { align: 'center', width: W });
 
       doc.end();
-      stream.on('finish', () => resolve(filePath));
-      stream.on('error', (err) => reject(err));
     } catch (error) {
       logger.error(`Invoice Generation Error: ${error.message}`);
       reject(error);
