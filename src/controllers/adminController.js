@@ -259,12 +259,33 @@ const archiveInquiry = async (req, res, next) => {
 // Purchases & Payments
 const getPurchases = async (req, res, next) => {
   try {
-    const purchases = await prisma.coursePurchase.findMany({
+    const coursePurchases = await prisma.coursePurchase.findMany({
       where: { deletedAt: null },
       include: { course: true, invoice: true },
       orderBy: { createdAt: 'desc' }
     });
-    res.json({ success: true, data: purchases });
+
+    const templatePurchases = await prisma.templatePurchase.findMany({
+      where: { deletedAt: null },
+      include: { template: true, invoice: true },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    const formattedCourses = coursePurchases.map(p => ({
+      ...p,
+      type: 'COURSE',
+      itemTitle: p.course.title,
+    }));
+
+    const formattedTemplates = templatePurchases.map(p => ({
+      ...p,
+      type: 'TEMPLATE',
+      itemTitle: p.template.name,
+    }));
+
+    const allPurchases = [...formattedCourses, ...formattedTemplates].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    res.json({ success: true, data: allPurchases });
   } catch (error) {
     next(error);
   }
@@ -431,9 +452,74 @@ const uploadTemplateController = async (req, res, next) => {
   }
 };
 
+// Templates CRUD
+const getTemplates = async (req, res, next) => {
+  try {
+    const templates = await prisma.template.findMany({
+      where: { deletedAt: null },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json({ success: true, data: templates });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getTemplateById = async (req, res, next) => {
+  try {
+    const template = await prisma.template.findUnique({
+      where: { id: req.params.id }
+    });
+    if (!template || template.deletedAt) {
+      return res.status(404).json({ success: false, message: 'Template not found' });
+    }
+    res.json({ success: true, data: template });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const createTemplate = async (req, res, next) => {
+  try {
+    const template = await prisma.template.create({ data: req.body });
+    await logAction({ adminId: req.admin.id, action: 'CREATE', entity: 'Template', entityId: template.id, newValue: template });
+    res.status(201).json({ success: true, data: template });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updateTemplate = async (req, res, next) => {
+  try {
+    const oldTemplate = await prisma.template.findUnique({ where: { id: req.params.id } });
+    const template = await prisma.template.update({
+      where: { id: req.params.id },
+      data: req.body
+    });
+    await logAction({ adminId: req.admin.id, action: 'UPDATE', entity: 'Template', entityId: template.id, oldValue: oldTemplate, newValue: template });
+    res.json({ success: true, data: template });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const deleteTemplate = async (req, res, next) => {
+  try {
+    const template = await prisma.template.update({
+      where: { id: req.params.id },
+      data: { deletedAt: new Date() }
+    });
+    await logAction({ adminId: req.admin.id, action: 'DELETE', entity: 'Template', entityId: template.id });
+    res.json({ success: true, message: 'Template deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   login, logout, refresh,
   getCourses, getCourseById, createCourse, updateCourse, archiveCourse, deleteCourse,
+  getTemplates, getTemplateById, createTemplate, updateTemplate, deleteTemplate,
   createJob, updateJob, deleteJob,
   getInquiries, archiveInquiry,
   getPurchases,

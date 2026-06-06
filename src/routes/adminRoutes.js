@@ -5,6 +5,7 @@ const { auth, authorize } = require('../middleware/auth');
 const { 
   loginSchema, 
   courseSchema, 
+  templateSchema,
   jobSchema, 
   assessmentSchema, 
   questionSchema 
@@ -49,6 +50,13 @@ router.post('/courses', validate(courseSchema), adminController.createCourse);
 router.put('/courses/:id', validate(courseSchema), adminController.updateCourse);
 router.patch('/courses/:id/archive', adminController.archiveCourse);
 router.delete('/courses/:id', adminController.deleteCourse);
+
+// Templates
+router.get('/templates', adminController.getTemplates);
+router.get('/templates/:id', adminController.getTemplateById);
+router.post('/templates', validate(templateSchema), adminController.createTemplate);
+router.put('/templates/:id', validate(templateSchema), adminController.updateTemplate);
+router.delete('/templates/:id', adminController.deleteTemplate);
 
 // Jobs
 router.post('/jobs', validate(jobSchema), adminController.createJob);

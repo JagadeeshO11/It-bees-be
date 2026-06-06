@@ -48,10 +48,23 @@ const assessmentSubmissionSchema = z.object({
   timeTaken: z.number().int().positive(),
 });
 
+const templatePurchaseSchema = z.object({
+  templateId: z.string().uuid(),
+  name: z.string().min(2),
+  email: z.string().email(),
+  phone: z.string().min(10),
+  address: z.string().min(5),
+  city: z.string().min(2),
+  state: z.string().min(2),
+  pincode: z.string().length(6),
+  otp: z.string().length(6),
+});
+
 module.exports = {
   inquirySchema,
   jobApplicationSchema,
   purchaseSchema,
+  templatePurchaseSchema,
   otpRequestSchema,
   assessmentSubmissionSchema,
 };

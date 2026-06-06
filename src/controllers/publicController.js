@@ -387,6 +387,173 @@ const submitAssessment = async (req, res, next) => {
   }
 };
 
+// Templates
+const getTemplates = async (req, res, next) => {
+  try {
+    const templates = await prisma.template.findMany({
+      where: { deletedAt: null, isArchived: false },
+      select: {
+        id: true,
+        name: true,
+        price: true,
+        description: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json({ success: true, data: templates });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getTemplateById = async (req, res, next) => {
+  try {
+    const template = await prisma.template.findUnique({
+      where: { id: req.params.id },
+      select: {
+        id: true,
+        name: true,
+        price: true,
+        description: true,
+        createdAt: true,
+      }
+    });
+    if (!template || template.deletedAt || template.isArchived) {
+      return res.status(404).json({ success: false, message: 'Template not found' });
+    }
+    res.json({ success: true, data: template });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const initiateTemplatePurchase = async (req, res, next) => {
+  try {
+    const { templateId, name, email, phone, address, city, state, pincode, otp } = req.body;
+
+    const existing = await prisma.templatePurchase.findFirst({
+      where: { email, templateId, status: 'SUCCESS' }
+    });
+    if (existing) {
+      return res.status(409).json({ success: false, message: 'This email has already purchased this template.' });
+    }
+
+    await verifyOtp(email, otp, 'PURCHASE');
+
+    const template = await prisma.template.findUnique({ where: { id: templateId } });
+    if (!template || template.deletedAt || template.isArchived) {
+      return res.status(404).json({ success: false, message: 'Template not found' });
+    }
+
+    const purchase = await prisma.templatePurchase.create({
+      data: { templateId, name, email, phone, address, city, state, pincode, amount: template.price, status: 'PENDING' }
+    });
+
+    const razorpayOrder = await createOrder(template.price, 'INR', purchase.id.slice(0, 40));
+
+    await prisma.templatePurchase.update({
+      where: { id: purchase.id },
+      data: { razorpayOrderId: razorpayOrder.id }
+    });
+
+    res.json({
+      success: true,
+      data: {
+        purchaseId: purchase.id,
+        razorpayOrderId: razorpayOrder.id,
+        amount: razorpayOrder.amount,
+        currency: razorpayOrder.currency,
+        key: process.env.RAZORPAY_KEY_ID
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const verifyTemplatePayment = async (req, res, next) => {
+  try {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, purchaseId } = req.body;
+
+    const isValid = verifySignature(razorpay_order_id, razorpay_payment_id, razorpay_signature);
+    if (!isValid) {
+      return res.status(400).json({ success: false, message: 'Invalid payment signature' });
+    }
+
+    const purchase = await prisma.$transaction(async (tx) => {
+      const p = await tx.templatePurchase.update({
+        where: { id: purchaseId },
+        data: {
+          status: 'SUCCESS',
+          paymentId: razorpay_payment_id
+        },
+        include: { template: true }
+      });
+
+      await tx.payment.create({
+        data: {
+          razorpayOrderId: razorpay_order_id,
+          paymentId: razorpay_payment_id,
+          signature: razorpay_signature,
+          amount: p.amount,
+          status: 'SUCCESS',
+          method: 'Razorpay'
+        }
+      });
+
+      return p;
+    });
+
+    const invoiceCount = await prisma.invoice.count();
+    const invoiceNumber = `ITB${String(invoiceCount + 1).padStart(3, '0')}`;
+    const pdfBuffer = await generateInvoicePdf(purchase, invoiceNumber);
+
+    await prisma.invoice.create({
+      data: {
+        templatePurchaseId: purchase.id,
+        invoiceNumber,
+        filePath: invoiceNumber
+      }
+    });
+
+    const subject = `Order Confirmation & Invoice - ${purchase.template.name}`;
+    const html = `
+      <h3>Thank you for your purchase, ${purchase.name}!</h3>
+      <p>Attached is your invoice for the template: <b>${purchase.template.name}</b>.</p>
+      <p>You can also download your resource directly using this link:</p>
+      <p><a href="${purchase.template.templateUrl}" style="background:#023295;color:#fff;padding:10px 20px;text-decoration:none;border-radius:5px;font-weight:bold;">Download Template</a></p>
+      <p>Or copy and paste this URL into your browser:</p>
+      <p>${purchase.template.templateUrl}</p>
+    `;
+
+    const attachments = [{
+      filename: `Invoice_${invoiceNumber}.pdf`,
+      content: pdfBuffer
+    }];
+
+    await sendEmail(purchase.email, subject, 'Thank you for your purchase!', html, attachments);
+    await sendEmail(process.env.ADMIN_EMAIL, `New Template Purchase: ${purchase.template.name}`, `New purchase by ${purchase.name}`, html, attachments);
+
+    res.json({
+      success: true,
+      message: 'Payment verified, invoice sent, and download available',
+      data: {
+        name: purchase.name,
+        email: purchase.email,
+        phone: purchase.phone,
+        templateName: purchase.template.name,
+        amount: purchase.amount,
+        invoiceNumber,
+        paymentId: razorpay_payment_id,
+        downloadUrl: purchase.template.templateUrl
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getCourses,
   getJobs,
@@ -396,6 +563,10 @@ module.exports = {
   requestPurchaseOtp,
   initiatePurchase,
   verifyPayment,
+  getTemplates,
+  getTemplateById,
+  initiateTemplatePurchase,
+  verifyTemplatePayment,
   getAssessments,
   getAssessmentDetails,
   submitAssessment

@@ -73,7 +73,6 @@ model Course {
   rating       String?
   icon         String?         @db.Text
   image        String?         @db.Text
-  templateUrl  String?         @db.Text
   isArchived   Boolean          @default(false)
   purchases    CoursePurchase[]
   createdAt    DateTime         @default(now())
@@ -104,6 +103,44 @@ model CoursePurchase {
   deletedAt     DateTime?
 
   @@map("course_purchases")
+}
+
+model Template {
+  id           String             @id @default(uuid())
+  name         String
+  price        Float
+  templateUrl  String             @db.Text
+  description  String
+  isArchived   Boolean            @default(false)
+  purchases    TemplatePurchase[]
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  deletedAt    DateTime?
+
+  @@map("templates")
+}
+
+model TemplatePurchase {
+  id              String         @id @default(uuid())
+  templateId      String
+  template        Template       @relation(fields: [templateId], references: [id])
+  name            String
+  email           String
+  phone           String
+  address         String         @default("")
+  city            String         @default("")
+  state           String         @default("")
+  pincode         String         @default("")
+  razorpayOrderId String?        @unique
+  paymentId       String?        @unique
+  amount          Float
+  status          PurchaseStatus @default(PENDING)
+  invoice         Invoice?       @relation(name: "TemplatePurchaseToInvoice")
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  deletedAt       DateTime?
+
+  @@map("template_purchases")
 }
 
 model OtpVerification {
@@ -143,12 +180,14 @@ model PaymentLog {
 }
 
 model Invoice {
-  id             String         @id @default(uuid())
-  purchaseId     String         @unique
-  purchase       CoursePurchase @relation(fields: [purchaseId], references: [id])
-  invoiceNumber  String         @unique
-  filePath       String?
-  createdAt      DateTime       @default(now())
+  id                 String            @id @default(uuid())
+  purchaseId         String?           @unique
+  purchase           CoursePurchase?   @relation(fields: [purchaseId], references: [id])
+  templatePurchaseId String?           @unique
+  templatePurchase   TemplatePurchase? @relation(name: "TemplatePurchaseToInvoice", fields: [templatePurchaseId], references: [id])
+  invoiceNumber      String            @unique
+  filePath           String?
+  createdAt          DateTime          @default(now())
 
   @@map("invoices")
 }

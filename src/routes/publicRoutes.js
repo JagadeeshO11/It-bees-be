@@ -5,6 +5,7 @@ const {
   inquirySchema, 
   jobApplicationSchema, 
   purchaseSchema, 
+  templatePurchaseSchema,
   otpRequestSchema, 
   assessmentSubmissionSchema 
 } = require('../validators/publicValidator');
@@ -20,6 +21,8 @@ const validate = (schema) => (req, res, next) => {
 // Public Browsing
 router.get('/courses', publicController.getCourses);
 router.get('/jobs', publicController.getJobs);
+router.get('/templates', publicController.getTemplates);
+router.get('/templates/:id', publicController.getTemplateById);
 router.get('/assessments', publicController.getAssessments);
 router.get('/assessments/:id', publicController.getAssessmentDetails);
 router.get('/jobs/:id', publicController.getJobById);
@@ -32,6 +35,10 @@ router.post('/jobs/apply', publicController.applyForJob); // Multipart handled i
 router.post('/purchase/otp', validate(otpRequestSchema), publicController.requestPurchaseOtp);
 router.post('/purchase/initiate', validate(purchaseSchema), publicController.initiatePurchase);
 router.post('/purchase/verify', publicController.verifyPayment);
+
+// Template Purchase Flow
+router.post('/purchase-template/initiate', validate(templatePurchaseSchema), publicController.initiateTemplatePurchase);
+router.post('/purchase-template/verify', publicController.verifyTemplatePayment);
 
 // Assessments
 router.post('/assessments/submit', validate(assessmentSubmissionSchema), publicController.submitAssessment);

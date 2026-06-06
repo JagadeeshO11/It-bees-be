@@ -20,7 +20,13 @@ const courseSchema = z.object({
   rating: z.string().nullable().optional(),
   icon: z.string().nullable().optional(),
   image: z.string().nullable().optional(),
-  templateUrl: z.string().nullable().optional(),
+});
+
+const templateSchema = z.object({
+  name: z.string().min(3),
+  price: z.coerce.number().positive(),
+  templateUrl: z.string().url("Must be a valid URL"),
+  description: z.string(),
 });
 
 const jobSchema = z.object({
@@ -54,6 +60,7 @@ module.exports = {
   loginSchema,
   updatePasswordSchema,
   courseSchema,
+  templateSchema,
   jobSchema,
   assessmentSchema,
   questionSchema,

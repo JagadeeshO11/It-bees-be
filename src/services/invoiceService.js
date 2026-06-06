@@ -71,18 +71,28 @@ const generateInvoicePdf = (purchase, invoiceNumber) => {
          .text(purchase.address || '', M + 12, billingTop + 76, { width: 216 })
          .text(`${purchase.city || ''}${purchase.city && purchase.state ? ', ' : ''}${purchase.state || ''} - ${purchase.pincode || ''}`, M + 12, billingTop + 92);
 
-      // Course Details box
+      // Details box
       const cdX = M + 260;
       doc.rect(cdX, billingTop, 255, 130).fill('#ffffff').stroke(BORDER);
-      doc.font('Helvetica-Bold').fontSize(8).fillColor(BRAND_BLUE)
-         .text('COURSE DETAILS', cdX + 12, billingTop + 12);
-      doc.moveTo(cdX + 12, billingTop + 24).lineTo(cdX + 80, billingTop + 24).lineWidth(1).stroke(BRAND_LIME);
-      doc.font('Helvetica-Bold').fontSize(10).fillColor(DARK)
-         .text(purchase.course.title, cdX + 12, billingTop + 32, { width: 231 });
-      doc.font('Helvetica').fontSize(9).fillColor(MUTED)
-         .text(`Category: ${purchase.course.category}`, cdX + 12, billingTop + 60)
-         .text(`Duration: ${purchase.course.duration}`, cdX + 12, billingTop + 74)
-         .text(`Hours: ${purchase.course.hours} hrs`, cdX + 12, billingTop + 88);
+      if (purchase.template) {
+        doc.font('Helvetica-Bold').fontSize(8).fillColor(BRAND_BLUE)
+           .text('TEMPLATE DETAILS', cdX + 12, billingTop + 12);
+        doc.moveTo(cdX + 12, billingTop + 24).lineTo(cdX + 80, billingTop + 24).lineWidth(1).stroke(BRAND_LIME);
+        doc.font('Helvetica-Bold').fontSize(10).fillColor(DARK)
+           .text(purchase.template.name, cdX + 12, billingTop + 32, { width: 231 });
+        doc.font('Helvetica').fontSize(9).fillColor(MUTED)
+           .text(`Description: ${purchase.template.description.substring(0, 100)}...`, cdX + 12, billingTop + 60, { width: 231 });
+      } else {
+        doc.font('Helvetica-Bold').fontSize(8).fillColor(BRAND_BLUE)
+           .text('COURSE DETAILS', cdX + 12, billingTop + 12);
+        doc.moveTo(cdX + 12, billingTop + 24).lineTo(cdX + 80, billingTop + 24).lineWidth(1).stroke(BRAND_LIME);
+        doc.font('Helvetica-Bold').fontSize(10).fillColor(DARK)
+           .text(purchase.course.title, cdX + 12, billingTop + 32, { width: 231 });
+        doc.font('Helvetica').fontSize(9).fillColor(MUTED)
+           .text(`Category: ${purchase.course.category}`, cdX + 12, billingTop + 60)
+           .text(`Duration: ${purchase.course.duration}`, cdX + 12, billingTop + 74)
+           .text(`Hours: ${purchase.course.hours} hrs`, cdX + 12, billingTop + 88);
+      }
 
       // ── Items Table ─────────────────────────────────────────────
       const tableTop = billingTop + 148;
@@ -92,7 +102,7 @@ const generateInvoicePdf = (purchase, invoiceNumber) => {
       doc.font('Helvetica-Bold').fontSize(9).fillColor('#ffffff')
          .text('#', M + 10, tableTop + 9)
          .text('DESCRIPTION', M + 30, tableTop + 9)
-         .text('DURATION', M + 310, tableTop + 9)
+         .text('INFO', M + 310, tableTop + 9)
          .text('QTY', M + 390, tableTop + 9)
          .text('AMOUNT', M + 430, tableTop + 9);
 
@@ -100,13 +110,24 @@ const generateInvoicePdf = (purchase, invoiceNumber) => {
       const rowTop = tableTop + 28;
       doc.rect(M, rowTop, W - M * 2, 40).fill('#ffffff').stroke(BORDER);
       doc.font('Helvetica').fontSize(9).fillColor(DARK)
-         .text('1', M + 10, rowTop + 14)
-         .text(purchase.course.title, M + 30, rowTop + 8, { width: 270 })
-         .text(purchase.course.duration, M + 310, rowTop + 14, { width: 70 })
-         .text('1', M + 390, rowTop + 14)
-         .text(`INR ${Number(purchase.amount).toLocaleString('en-IN')}`, M + 425, rowTop + 14);
-      doc.font('Helvetica').fontSize(8).fillColor(MUTED)
-         .text(purchase.course.category, M + 30, rowTop + 24, { width: 270 });
+         .text('1', M + 10, rowTop + 14);
+      if (purchase.template) {
+        doc.font('Helvetica').fontSize(9).fillColor(DARK)
+           .text(purchase.template.name, M + 30, rowTop + 8, { width: 270 })
+           .text('Template file', M + 310, rowTop + 14, { width: 70 })
+           .text('1', M + 390, rowTop + 14)
+           .text(`INR ${Number(purchase.amount).toLocaleString('en-IN')}`, M + 425, rowTop + 14);
+        doc.font('Helvetica').fontSize(8).fillColor(MUTED)
+           .text('Premium Digital Resource', M + 30, rowTop + 24, { width: 270 });
+      } else {
+        doc.font('Helvetica').fontSize(9).fillColor(DARK)
+           .text(purchase.course.title, M + 30, rowTop + 8, { width: 270 })
+           .text(purchase.course.duration, M + 310, rowTop + 14, { width: 70 })
+           .text('1', M + 390, rowTop + 14)
+           .text(`INR ${Number(purchase.amount).toLocaleString('en-IN')}`, M + 425, rowTop + 14);
+        doc.font('Helvetica').fontSize(8).fillColor(MUTED)
+           .text(purchase.course.category, M + 30, rowTop + 24, { width: 270 });
+      }
 
       // ── Summary ─────────────────────────────────────────────────
       const summaryTop = rowTop + 48;
