@@ -19,4 +19,23 @@ const uploadImage = (fileBuffer, mimetype) => {
   });
 };
 
-module.exports = { uploadImage };
+const uploadFile = (fileBuffer, originalName) => {
+  return new Promise((resolve, reject) => {
+    const publicId = `template_${Date.now()}_${originalName.replace(/\.[^/.]+$/, '').replace(/\s+/g, '_')}`;
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder: 'itbees/templates',
+        resource_type: 'raw',
+        public_id: publicId,
+        use_filename: false,
+      },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result.secure_url);
+      }
+    );
+    stream.end(fileBuffer);
+  });
+};
+
+module.exports = { uploadImage, uploadFile };

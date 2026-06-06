@@ -13,13 +13,14 @@ const updatePasswordSchema = z.object({
 const courseSchema = z.object({
   title: z.string().min(3),
   category: z.string(),
-  hours: z.number().int().positive(),
+  hours: z.coerce.number().int().positive(),
   duration: z.string(),
-  price: z.number().positive(),
+  price: z.coerce.number().positive(),
   description: z.string(),
-  rating: z.string().optional(),
-  icon: z.string().optional(),
-  image: z.string().optional(),
+  rating: z.string().nullable().optional(),
+  icon: z.string().nullable().optional(),
+  image: z.string().nullable().optional(),
+  templateUrl: z.string().nullable().optional(),
 });
 
 const jobSchema = z.object({

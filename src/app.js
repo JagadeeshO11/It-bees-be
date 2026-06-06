@@ -44,7 +44,7 @@ app.use(express.urlencoded({ extended: true }));
 // File Uploads
 app.use(fileUpload({
   createParentPath: true,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB limit (templates up to 20MB, images validated per-controller)
   abortOnLimit: true
 }));
 

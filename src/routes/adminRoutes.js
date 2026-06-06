@@ -11,10 +11,26 @@ const {
 } = require('../validators/adminValidator');
 
 const validate = (schema) => (req, res, next) => {
+  console.log('--- VALIDATION START ---');
+  console.log('Method:', req.method, 'URL:', req.originalUrl);
+  console.log('Body keys:', Object.keys(req.body));
+  
   const result = schema.safeParse(req.body);
   if (!result.success) {
+    console.error('VALIDATION FAILED:', JSON.stringify(result.error.errors, null, 2));
+    console.error('Payload was:', JSON.stringify(req.body, null, 2));
+    
+    // Log types of fields that failed
+    result.error.errors.forEach(err => {
+      const field = err.path[0];
+      if (field) {
+        console.error(`Field "${field}" type:`, typeof req.body[field], 'Value:', req.body[field]);
+      }
+    });
+
     return res.status(400).json({ success: false, errors: result.error.errors });
   }
+  console.log('VALIDATION SUCCESS');
   next();
 };
 
@@ -59,5 +75,6 @@ router.get('/audit-logs', authorize('SUPER_ADMIN'), adminController.getAuditLogs
 
 // Upload
 router.post('/upload/image', adminController.uploadImage);
+router.post('/upload/template', adminController.uploadTemplate);
 
 module.exports = router;

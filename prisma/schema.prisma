@@ -71,8 +71,9 @@ model Course {
   price        Float
   description  String
   rating       String?
-  icon         String?
-  image        String?
+  icon         String?         @db.Text
+  image        String?         @db.Text
+  templateUrl  String?         @db.Text
   isArchived   Boolean          @default(false)
   purchases    CoursePurchase[]
   createdAt    DateTime         @default(now())

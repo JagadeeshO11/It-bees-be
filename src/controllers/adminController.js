@@ -2,7 +2,7 @@ const prisma = require('../utils/prisma');
 const { hashPassword, comparePassword } = require('../utils/password');
 const { generateAccessToken, generateRefreshToken, verifyRefreshToken } = require('../utils/jwt');
 const { logAction } = require('../services/auditService');
-const { uploadImage } = require('../services/cloudinaryService');
+const { uploadImage, uploadFile } = require('../services/cloudinaryService');
 const logger = require('../utils/logger');
 
 // Auth
@@ -80,24 +80,62 @@ const refresh = async (req, res, next) => {
 // Courses
 const createCourse = async (req, res, next) => {
   try {
+    console.log('--- CREATE COURSE TRACE ---');
+    console.log('Initial req.body:', JSON.stringify(req.body, null, 2));
+
+    // Normalize templateUrl: trim and convert empty strings to null
+    if (typeof req.body.templateUrl === 'string') {
+      req.body.templateUrl = req.body.templateUrl.trim() || null;
+    }
+    // Map `template` to `templateUrl` if provided
+    if (req.body && Object.prototype.hasOwnProperty.call(req.body, 'template')) {
+      if (!req.body.templateUrl) req.body.templateUrl = req.body.template;
+      delete req.body.template;
+    }
+    
+    console.log('Processed req.body:', JSON.stringify(req.body, null, 2));
+
     const course = await prisma.course.create({ data: req.body });
+    console.log('Prisma response:', JSON.stringify(course, null, 2));
+    
     await logAction({ adminId: req.admin.id, action: 'CREATE', entity: 'Course', entityId: course.id, newValue: course });
     res.status(201).json({ success: true, data: course });
   } catch (error) {
+    console.error('CREATE COURSE ERROR:', error);
     next(error);
   }
 };
 
 const updateCourse = async (req, res, next) => {
   try {
+    console.log('--- UPDATE COURSE TRACE ---');
+    console.log('Course ID:', req.params.id);
+    console.log('Initial req.body:', JSON.stringify(req.body, null, 2));
+
     const oldCourse = await prisma.course.findUnique({ where: { id: req.params.id } });
+    
+    // Normalize templateUrl: trim and convert empty strings to null
+    if (typeof req.body.templateUrl === 'string') {
+      req.body.templateUrl = req.body.templateUrl.trim() || null;
+    }
+    // Map `template` to `templateUrl` if provided
+    if (req.body && Object.prototype.hasOwnProperty.call(req.body, 'template')) {
+      if (!req.body.templateUrl) req.body.templateUrl = req.body.template;
+      delete req.body.template;
+    }
+
+    console.log('Processed req.body:', JSON.stringify(req.body, null, 2));
+
     const course = await prisma.course.update({
       where: { id: req.params.id },
       data: req.body
     });
+    console.log('Prisma response:', JSON.stringify(course, null, 2));
+
     await logAction({ adminId: req.admin.id, action: 'UPDATE', entity: 'Course', entityId: course.id, oldValue: oldCourse, newValue: course });
     res.json({ success: true, data: course });
   } catch (error) {
+    console.error('UPDATE COURSE ERROR:', error);
     next(error);
   }
 };
@@ -341,6 +379,32 @@ const uploadImageController = async (req, res, next) => {
   }
 };
 
+const uploadTemplateController = async (req, res, next) => {
+  try {
+    const file = req.files?.template || req.files?.templateUrl;
+    if (!file) {
+      return res.status(400).json({ success: false, message: 'No template file provided' });
+    }
+    const allowed = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-powerpoint',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    ];
+    if (!allowed.includes(file.mimetype)) {
+      return res.status(400).json({ success: false, message: 'Invalid file type. Only PDF, DOC, DOCX, PPT, PPTX allowed.' });
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      return res.status(400).json({ success: false, message: 'File too large. Max 20MB allowed.' });
+    }
+    const url = await uploadFile(file.data, file.name);
+    res.json({ success: true, url });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   login, logout, refresh,
   createCourse, updateCourse, archiveCourse, deleteCourse,
@@ -350,5 +414,6 @@ module.exports = {
   getApplications, updateApplicationStatus, updateApplication, deleteApplication,
   getAuditLogs,
   createAssessmentCategory, createAssessment, addQuestion, getAssessmentAttempts,
-  uploadImage: uploadImageController
+  uploadImage: uploadImageController,
+  uploadTemplate: uploadTemplateController
 };
