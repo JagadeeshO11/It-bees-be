@@ -43,6 +43,8 @@ router.post('/refresh', adminController.refresh);
 router.use(auth);
 
 // Courses
+router.get('/courses', adminController.getCourses);
+router.get('/courses/:id', adminController.getCourseById);
 router.post('/courses', validate(courseSchema), adminController.createCourse);
 router.put('/courses/:id', validate(courseSchema), adminController.updateCourse);
 router.patch('/courses/:id/archive', adminController.archiveCourse);

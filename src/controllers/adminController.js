@@ -78,6 +78,32 @@ const refresh = async (req, res, next) => {
 };
 
 // Courses
+const getCourses = async (req, res, next) => {
+  try {
+    const courses = await prisma.course.findMany({
+      where: { deletedAt: null },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json({ success: true, data: courses });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getCourseById = async (req, res, next) => {
+  try {
+    const course = await prisma.course.findUnique({
+      where: { id: req.params.id }
+    });
+    if (!course || course.deletedAt) {
+      return res.status(404).json({ success: false, message: 'Course not found' });
+    }
+    res.json({ success: true, data: course });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const createCourse = async (req, res, next) => {
   try {
     console.log('--- CREATE COURSE TRACE ---');
@@ -407,7 +433,7 @@ const uploadTemplateController = async (req, res, next) => {
 
 module.exports = {
   login, logout, refresh,
-  createCourse, updateCourse, archiveCourse, deleteCourse,
+  getCourses, getCourseById, createCourse, updateCourse, archiveCourse, deleteCourse,
   createJob, updateJob, deleteJob,
   getInquiries, archiveInquiry,
   getPurchases,
