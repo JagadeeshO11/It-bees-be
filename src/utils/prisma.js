@@ -12,7 +12,7 @@ const prisma = globalForPrisma.prisma ?? new PrismaClient({
 });
 
 // Test connection on startup with retry (handles Neon cold starts)
-const connectWithRetry = async (retries = 3, delay = 10000) => {
+const connectWithRetry = async (retries = 2, delay = 2000) => {
   for (let i = 0; i < retries; i++) {
     try {
       await prisma.$connect();
