@@ -25,8 +25,12 @@ const courseSchema = z.object({
 const templateSchema = z.object({
   name: z.string().min(3),
   price: z.coerce.number().positive(),
-  templateUrl: z.string().url("Must be a valid URL"),
+  templateUrl: z.string().min(1, "Product URL is required"),
   description: z.string(),
+  category: z.string().optional(),
+  image: z.string().nullable().optional(),
+  rating: z.string().nullable().optional(),
+  features: z.array(z.string()).nullable().optional(),
 });
 
 const jobSchema = z.object({

@@ -392,13 +392,6 @@ const getTemplates = async (req, res, next) => {
   try {
     const templates = await prisma.template.findMany({
       where: { deletedAt: null, isArchived: false },
-      select: {
-        id: true,
-        name: true,
-        price: true,
-        description: true,
-        createdAt: true,
-      },
       orderBy: { createdAt: 'desc' }
     });
     res.json({ success: true, data: templates });

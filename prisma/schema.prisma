@@ -109,8 +109,12 @@ model Template {
   id           String             @id @default(uuid())
   name         String
   price        Float
-  templateUrl  String             @db.Text
+  category     String             @default("General")
   description  String
+  image        String?            @db.Text
+  templateUrl  String             @db.Text
+  rating       String?            @default("New")
+  features     Json?              // Array of feature strings
   isArchived   Boolean            @default(false)
   purchases    TemplatePurchase[]
   createdAt    DateTime           @default(now())

@@ -1,3 +1,5 @@
+require('dotenv').config({ path: require('path').join(__dirname, '.env') });
+
 const app = require('./src/app');
 const logger = require('./src/utils/logger');
 
