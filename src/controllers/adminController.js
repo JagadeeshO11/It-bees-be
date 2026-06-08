@@ -477,6 +477,7 @@ const createAssessment = async (req, res, next) => {
   }
 };
 
+const addQuestion = async (req, res, next) => {
   try {
     const question = await prisma.assessmentQuestion.create({
       data: {
