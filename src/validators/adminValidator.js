@@ -10,6 +10,30 @@ const updatePasswordSchema = z.object({
   newPassword: z.string().min(6),
 });
 
+/* ============================================================
+ * PASSWORD RESET SCHEMAS
+ * ============================================================
+ * Three-step admin password reset flow:
+ *   1. forgotPassword  — admin enters email → backend emails OTP
+ *   2. verifyOtp       — admin enters the 6-digit OTP → backend marks it verified
+ *   3. resetPassword   — admin enters new password → backend updates the Admin row
+ * ============================================================ */
+
+const emailSchema = z.object({
+  email: z.string().email('Please enter a valid email address'),
+});
+
+const otpSchema = z.object({
+  email: z.string().email('Please enter a valid email address'),
+  otp: z.string().regex(/^\d{6}$/, 'OTP must be a 6-digit number'),
+});
+
+const resetPasswordSchema = z.object({
+  email: z.string().email('Please enter a valid email address'),
+  otp: z.string().regex(/^\d{6}$/, 'OTP must be a 6-digit number'),
+  newPassword: z.string().min(6, 'Password must be at least 6 characters'),
+});
+
 const courseSchema = z.object({
   title: z.string().min(3),
   category: z.string(),
@@ -63,6 +87,9 @@ const questionSchema = z.object({
 module.exports = {
   loginSchema,
   updatePasswordSchema,
+  emailSchema,
+  otpSchema,
+  resetPasswordSchema,
   courseSchema,
   templateSchema,
   jobSchema,

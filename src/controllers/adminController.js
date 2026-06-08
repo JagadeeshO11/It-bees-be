@@ -3,6 +3,7 @@ const { hashPassword, comparePassword } = require('../utils/password');
 const { generateAccessToken, generateRefreshToken, verifyRefreshToken } = require('../utils/jwt');
 const { logAction } = require('../services/auditService');
 const { uploadImage, uploadFile } = require('../services/cloudinaryService');
+const { sendOtp, verifyOtp } = require('../services/otpService');
 const logger = require('../utils/logger');
 
 // Auth
@@ -72,6 +73,103 @@ const refresh = async (req, res, next) => {
 
     const accessToken = generateAccessToken(session.admin);
     res.json({ success: true, data: { accessToken } });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/* ============================================================
+ * PASSWORD RESET FLOW (admin)
+ * ============================================================
+ * 1) forgotPassword  — admin enters email
+ *      → if the email belongs to a real admin we send a 6-digit OTP
+ *        to that address and respond with a generic success message
+ *      → we ALWAYS return the same success message whether the email
+ *        is registered or not, to avoid leaking which addresses are
+ *        admin accounts
+ *
+ * 2) verifyOtp       — admin submits the 6-digit OTP they received
+ *      → we mark the OTP record as verified
+ *
+ * 3) resetPassword   — admin submits the new password (plus the OTP
+ *      again, to be safe) and we update the Admin row's password hash
+ * ============================================================ */
+
+const PASSWORD_RESET_TYPE = 'ADMIN_PASSWORD_RESET';
+
+const forgotPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const normalizedEmail = String(email || '').trim().toLowerCase();
+
+    // Look up the admin but do NOT leak whether they exist.
+    const admin = await prisma.admin.findUnique({ where: { email: normalizedEmail } });
+
+    if (admin && !admin.deletedAt) {
+      try {
+        await sendOtp(normalizedEmail, PASSWORD_RESET_TYPE);
+        logger.info(`[Auth] Password reset OTP sent to admin ${admin.email}`);
+      } catch (emailErr) {
+        // Don't surface email-send failures to the client (avoids enumeration)
+        logger.error(`[Auth] Failed to send password reset OTP: ${emailErr.message}`);
+      }
+    } else {
+      // No admin with that email — still pretend we sent something so
+      // an attacker can't enumerate which addresses are admin accounts.
+      logger.warn(`[Auth] Password reset requested for unknown / deleted admin: ${normalizedEmail}`);
+    }
+
+    return res.json({
+      success: true,
+      message: 'If an account exists for that email, a verification code has been sent.',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const verifyPasswordResetOtp = async (req, res, next) => {
+  try {
+    const { email, otp } = req.body;
+    const normalizedEmail = String(email || '').trim().toLowerCase();
+
+    await verifyOtp(normalizedEmail, String(otp || ''), PASSWORD_RESET_TYPE);
+    return res.json({ success: true, message: 'OTP verified successfully.' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const resetPassword = async (req, res, next) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+    const normalizedEmail = String(email || '').trim().toLowerCase();
+
+    // Re-verify the OTP (defense in depth — prevents a stale "verified" flag
+    // from being reused by anyone other than the original requester).
+    await verifyOtp(normalizedEmail, String(otp || ''), PASSWORD_RESET_TYPE);
+
+    const admin = await prisma.admin.findUnique({ where: { email: normalizedEmail } });
+    if (!admin || admin.deletedAt) {
+      const err = new Error('Account not found');
+      err.status = 404;
+      throw err;
+    }
+
+    const hashed = await hashPassword(newPassword);
+    await prisma.admin.update({
+      where: { id: admin.id },
+      data: { password: hashed },
+    });
+
+    // Invalidate all existing sessions for this admin so a hijacker can't
+    // continue using the old token after the password was reset.
+    await prisma.adminSession.deleteMany({ where: { adminId: admin.id } });
+
+    await logAction({ adminId: admin.id, action: 'PASSWORD_RESET', entity: 'Admin' });
+    logger.info(`[Auth] Password reset successful for admin ${admin.email}`);
+
+    return res.json({ success: true, message: 'Password has been reset successfully. Please log in.' });
   } catch (error) {
     next(error);
   }
@@ -379,7 +477,6 @@ const createAssessment = async (req, res, next) => {
   }
 };
 
-const addQuestion = async (req, res, next) => {
   try {
     const question = await prisma.assessmentQuestion.create({
       data: {
@@ -518,6 +615,7 @@ const deleteTemplate = async (req, res, next) => {
 
 module.exports = {
   login, logout, refresh,
+  forgotPassword, verifyPasswordResetOtp, resetPassword,
   getCourses, getCourseById, createCourse, updateCourse, archiveCourse, deleteCourse,
   getTemplates, getTemplateById, createTemplate, updateTemplate, deleteTemplate,
   createJob, updateJob, deleteJob,

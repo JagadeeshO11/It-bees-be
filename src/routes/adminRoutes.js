@@ -2,25 +2,28 @@ const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
 const { auth, authorize } = require('../middleware/auth');
-const { 
-  loginSchema, 
-  courseSchema, 
+const {
+  loginSchema,
+  courseSchema,
   templateSchema,
-  jobSchema, 
-  assessmentSchema, 
-  questionSchema 
+  jobSchema,
+  assessmentSchema,
+  questionSchema,
+  emailSchema,
+  otpSchema,
+  resetPasswordSchema
 } = require('../validators/adminValidator');
 
 const validate = (schema) => (req, res, next) => {
   console.log('--- VALIDATION START ---');
   console.log('Method:', req.method, 'URL:', req.originalUrl);
   console.log('Body keys:', Object.keys(req.body));
-  
+
   const result = schema.safeParse(req.body);
   if (!result.success) {
     console.error('VALIDATION FAILED:', JSON.stringify(result.error.errors, null, 2));
     console.error('Payload was:', JSON.stringify(req.body, null, 2));
-    
+
     // Log types of fields that failed
     result.error.errors.forEach(err => {
       const field = err.path[0];
@@ -35,12 +38,24 @@ const validate = (schema) => (req, res, next) => {
   next();
 };
 
-// Auth
-router.post('/login', validate(loginSchema), adminController.login);
-router.post('/logout', adminController.logout);
-router.post('/refresh', adminController.refresh);
+/* ============================================================
+ * Auth (public — no token required)
+ * ============================================================ */
+router.post('/login',            validate(loginSchema),          adminController.login);
+router.post('/logout',                                                adminController.logout);
+router.post('/refresh',                                                adminController.refresh);
 
-// Protected Routes
+// Password reset flow (public — no token required).
+// These endpoints are intentionally placed BEFORE the `router.use(auth)`
+// middleware below, so an admin who has forgotten their password can
+// still reach them without already being logged in.
+router.post('/forgot-password',   validate(emailSchema),         adminController.forgotPassword);
+router.post('/verify-reset-otp',  validate(otpSchema),           adminController.verifyPasswordResetOtp);
+router.post('/reset-password',    validate(resetPasswordSchema), adminController.resetPassword);
+
+/* ============================================================
+ * Protected Routes (require valid access token)
+ * ============================================================ */
 router.use(auth);
 
 // Courses
