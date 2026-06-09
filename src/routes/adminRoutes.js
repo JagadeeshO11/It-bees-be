@@ -82,8 +82,9 @@ router.delete('/jobs/:id', adminController.deleteJob);
 router.get('/inquiries', adminController.getInquiries);
 router.patch('/inquiries/:id/archive', adminController.archiveInquiry);
 
-// Sales & Applications
+// Sales, Trainees & Applications
 router.get('/purchases', adminController.getPurchases);
+router.get('/trainees', adminController.getTrainees);
 router.get('/applications', adminController.getApplications);
 router.put('/applications/:id', adminController.updateApplication);
 router.patch('/applications/:id/status', adminController.updateApplicationStatus);
@@ -94,6 +95,11 @@ router.post('/assessments/categories', adminController.createAssessmentCategory)
 router.post('/assessments', validate(assessmentSchema), adminController.createAssessment);
 router.post('/assessments/:assessmentId/questions', validate(questionSchema), adminController.addQuestion);
 router.get('/assessments/:assessmentId/attempts', adminController.getAssessmentAttempts);
+
+// Certificates
+router.get('/certificates', adminController.getCertificates);
+router.post('/certificates/send/:id', adminController.sendCertificate);
+router.get('/certificates/preview/:id', adminController.previewCertificate);
 
 // System
 router.get('/audit-logs', authorize('SUPER_ADMIN'), adminController.getAuditLogs);

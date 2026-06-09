@@ -21,6 +21,7 @@ enum PurchaseStatus {
 enum OtpType {
   PURCHASE
   REGISTRATION
+  ADMIN_PASSWORD_RESET
 }
 
 enum InquiryStatus {
@@ -63,63 +64,64 @@ model AdminSession {
 }
 
 model Course {
-  id           String           @id @default(uuid())
-  title        String
-  category     String
-  hours        Int
-  duration     String
-  price        Float
-  description  String
-  rating       String?
-  icon         String?         @db.Text
-  image        String?         @db.Text
-  isArchived   Boolean          @default(false)
-  purchases    CoursePurchase[]
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
-  deletedAt    DateTime?
+  id          String           @id @default(uuid())
+  title       String
+  category    String
+  hours       Int
+  duration    String
+  price       Float
+  description String
+  rating      String?
+  icon        String?          @db.Text
+  image       String?          @db.Text
+  isArchived  Boolean          @default(false)
+  purchases   CoursePurchase[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  deletedAt   DateTime?
 
   @@map("courses")
 }
 
 model CoursePurchase {
-  id            String         @id @default(uuid())
-  courseId      String
-  course        Course         @relation(fields: [courseId], references: [id])
-  name          String
-  email         String
-  phone         String
-  address       String   @default("")
-  city          String   @default("")
-  state         String   @default("")
-  pincode       String   @default("")
-  razorpayOrderId String?      @unique
-  paymentId     String?        @unique
-  amount        Float
-  status        PurchaseStatus @default(PENDING)
-  invoice       Invoice?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  deletedAt     DateTime?
+  id              String         @id @default(uuid())
+  courseId        String
+  course          Course         @relation(fields: [courseId], references: [id])
+  name            String
+  email           String
+  phone           String
+  address         String         @default("")
+  city            String         @default("")
+  state           String         @default("")
+  pincode         String         @default("")
+  razorpayOrderId String?        @unique
+  paymentId       String?        @unique
+  amount          Float
+  status          PurchaseStatus @default(PENDING)
+  invoice         Invoice?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  deletedAt       DateTime?
+  certificate     Certificate?
 
   @@map("course_purchases")
 }
 
 model Template {
-  id           String             @id @default(uuid())
-  name         String
-  price        Float
-  category     String             @default("General")
-  description  String
-  image        String?            @db.Text
-  templateUrl  String             @db.Text
-  rating       String?            @default("New")
-  features     Json?              // Array of feature strings
-  isArchived   Boolean            @default(false)
-  purchases    TemplatePurchase[]
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
-  deletedAt    DateTime?
+  id          String             @id @default(uuid())
+  name        String
+  price       Float
+  category    String             @default("General")
+  description String
+  image       String?            @db.Text
+  templateUrl String             @db.Text
+  rating      String?            @default("New")
+  features    Json? // Array of feature strings
+  isArchived  Boolean            @default(false)
+  purchases   TemplatePurchase[]
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  deletedAt   DateTime?
 
   @@map("templates")
 }
@@ -148,14 +150,14 @@ model TemplatePurchase {
 }
 
 model OtpVerification {
-  id        String   @id @default(uuid())
-  email     String
-  otpHash   String
-  type      OtpType
-  expiresAt DateTime
-  attempts  Int      @default(0)
-  isVerified Boolean @default(false)
-  createdAt DateTime @default(now())
+  id         String   @id @default(uuid())
+  email      String
+  otpHash    String
+  type       OtpType
+  expiresAt  DateTime
+  attempts   Int      @default(0)
+  isVerified Boolean  @default(false)
+  createdAt  DateTime @default(now())
 
   @@map("otp_verifications")
 }
@@ -183,6 +185,20 @@ model PaymentLog {
   @@map("payment_logs")
 }
 
+model Certificate {
+  id           String         @id @default(uuid())
+  purchaseId   String         @unique
+  purchase     CoursePurchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  sentAt       DateTime       @default(now())
+  sentBy       String?
+  emailSubject String         @default("Your Certificate of Completion - ITBEES Global")
+  status       String         @default("SENT") // SENT, FAILED
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@map("certificates")
+}
+
 model Invoice {
   id                 String            @id @default(uuid())
   purchaseId         String?           @unique
@@ -204,7 +220,7 @@ model Job {
   type         String
   salary       String
   description  String
-  requirements Json             // Array of strings
+  requirements Json // Array of strings
   isArchived   Boolean          @default(false)
   applications JobApplication[]
   createdAt    DateTime         @default(now())
@@ -264,16 +280,16 @@ model Assessment {
 }
 
 model AssessmentQuestion {
-  id           String             @id @default(uuid())
-  assessmentId String
-  assessment   Assessment         @relation(fields: [assessmentId], references: [id])
-  questionText String
-  options      Json               // Array of objects {text, isCorrect}
+  id            String             @id @default(uuid())
+  assessmentId  String
+  assessment    Assessment         @relation(fields: [assessmentId], references: [id])
+  questionText  String
+  options       Json // Array of objects {text, isCorrect}
   correctAnswer Int
-  marks        Int                @default(1)
-  answers      AssessmentAnswer[]
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
+  marks         Int                @default(1)
+  answers       AssessmentAnswer[]
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
 
   @@map("assessment_questions")
 }
@@ -286,7 +302,7 @@ model AssessmentAttempt {
   email        String
   phone        String
   score        Int
-  timeTaken    Int                // in seconds
+  timeTaken    Int // in seconds
   answers      AssessmentAnswer[]
   submittedAt  DateTime           @default(now())
   deletedAt    DateTime?

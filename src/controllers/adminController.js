@@ -389,6 +389,110 @@ const getPurchases = async (req, res, next) => {
   }
 };
 
+// Trainees (course purchasers with successful payments)
+const getTrainees = async (req, res, next) => {
+  try {
+    const trainees = await prisma.coursePurchase.findMany({
+      where: {
+        deletedAt: null,
+        status: 'SUCCESS'
+      },
+      include: { course: true },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    res.json({ success: true, data: trainees });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+
+const { sendCertificate: sendCertificateEmail, previewCertificate: buildPreview } = require('../services/certificate');
+
+const previewCertificate = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const purchase = await prisma.coursePurchase.findUnique({
+      where: { id },
+      include: { course: true, certificate: true }
+    });
+    if (!purchase || purchase.deletedAt || purchase.status !== 'SUCCESS') {
+      return res.status(404).json({ success: false, message: 'Valid trainee purchase not found' });
+    }
+    const html = buildPreview(
+      purchase.name,
+      purchase.course?.title || 'Course',
+      purchase.certificate?.sentAt || null
+    );
+    res.setHeader('Content-Type', 'text/html');
+    res.send(html);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getCertificates = async (req, res, next) => {
+  try {
+    const certs = await prisma.certificate.findMany({
+      orderBy: { sentAt: 'desc' }
+    });
+    res.json({ success: true, data: certs });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const sendCertificate = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const purchase = await prisma.coursePurchase.findUnique({
+      where: { id },
+      include: { course: true }
+    });
+
+    if (!purchase || purchase.deletedAt || purchase.status !== 'SUCCESS') {
+      return res.status(404).json({ success: false, message: 'Valid trainee purchase not found' });
+    }
+
+    const sentAt = new Date();
+    let status = 'SENT';
+    try {
+      await sendCertificateEmail({
+        to: purchase.email,
+        traineeName: purchase.name,
+        courseName: purchase.course?.title || 'Course',
+        date: sentAt
+      });
+    } catch (emailErr) {
+      console.error('Certificate email failed:', emailErr.message);
+      status = 'FAILED';
+    }
+
+    const cert = await prisma.certificate.upsert({
+      where: { purchaseId: purchase.id },
+      create: {
+        purchaseId: purchase.id,
+        sentAt,
+        sentBy: req.admin?.id || null,
+        status
+      },
+      update: {
+        sentBy: req.admin?.id || null,
+        status
+      }
+    });
+
+    await logAction({ adminId: req.admin?.id, action: 'SEND', entity: 'Certificate', entityId: cert.id, newValue: { purchaseId: purchase.id, status } });
+
+    res.json({ success: true, data: cert });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // Applications
 const getApplications = async (req, res, next) => {
   try {
@@ -402,6 +506,7 @@ const getApplications = async (req, res, next) => {
     next(error);
   }
 };
+
 
 const updateApplicationStatus = async (req, res, next) => {
   try {
@@ -621,8 +726,9 @@ module.exports = {
   getTemplates, getTemplateById, createTemplate, updateTemplate, deleteTemplate,
   createJob, updateJob, deleteJob,
   getInquiries, archiveInquiry,
-  getPurchases,
+  getPurchases, getTrainees,
   getApplications, updateApplicationStatus, updateApplication, deleteApplication,
+  getCertificates, sendCertificate, previewCertificate,
   getAuditLogs,
   createAssessmentCategory, createAssessment, addQuestion, getAssessmentAttempts,
   uploadImage: uploadImageController,

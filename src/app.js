@@ -52,7 +52,7 @@ const corsOptions = {
         callback(new Error('Not allowed by CORS'));
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Origin', 'Accept'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Origin', 'Accept', 'X-CSRF-Token', 'X-Api-Key'],
     credentials: true,
     maxAge: 86400,
     optionsSuccessStatus: 204,
@@ -62,7 +62,21 @@ const corsOptions = {
 app.use(helmet());
 
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
+app.options(/^\/api\/.*/, cors(corsOptions));
+
+app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    if (isOriginAllowed(origin)) {
+        res.header('Access-Control-Allow-Origin', origin || '*');
+        res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,PATCH,OPTIONS');
+        res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Origin, Accept, X-CSRF-Token, X-Api-Key');
+        res.header('Access-Control-Allow-Credentials', 'true');
+        if (req.method === 'OPTIONS') {
+            return res.sendStatus(204);
+        }
+    }
+    next();
+});
 
 // Rate Limiting
 const limiter = rateLimit({

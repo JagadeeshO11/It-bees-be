@@ -39,6 +39,48 @@ paths:
                   type: string
                 password:
                   type: string
+  /admin/forgot-password:
+    post:
+      summary: Request admin password reset OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+  /admin/verify-reset-otp:
+    post:
+      summary: Verify admin password reset OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                otp:
+                  type: string
+  /admin/reset-password:
+    post:
+      summary: Reset admin password using OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                otp:
+                  type: string
+                newPassword:
+                  type: string
 components:
   securitySchemes:
     bearerAuth:
