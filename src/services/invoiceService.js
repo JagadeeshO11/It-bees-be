@@ -133,23 +133,28 @@ const generateInvoicePdf = (purchase, invoiceNumber) => {
       const summaryTop = rowTop + 48;
       const summaryX = M + 320;
 
+      const totalAmount = Number(purchase.amount);
+      const taxRate = 0.18;
+      const subtotal = totalAmount / (1 + taxRate);
+      const taxAmount = totalAmount - subtotal;
+
       doc.rect(summaryX, summaryTop, W - M - summaryX, 32).fill(LIGHT_BG).stroke(BORDER);
       doc.font('Helvetica').fontSize(9).fillColor(MUTED)
          .text('Subtotal', summaryX + 10, summaryTop + 10);
       doc.font('Helvetica').fillColor(DARK)
-         .text(`INR ${Number(purchase.amount).toLocaleString('en-IN')}`, summaryX + 10, summaryTop + 10, { align: 'right', width: W - M - summaryX - 20 });
+         .text(`INR ${subtotal.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`, summaryX + 10, summaryTop + 10, { align: 'right', width: W - M - summaryX - 20 });
 
       doc.rect(summaryX, summaryTop + 32, W - M - summaryX, 32).fill(LIGHT_BG).stroke(BORDER);
       doc.font('Helvetica').fontSize(9).fillColor(MUTED)
-         .text('Tax (0% — Training Exempt)', summaryX + 10, summaryTop + 42);
+         .text('Tax (18% Included)', summaryX + 10, summaryTop + 42);
       doc.font('Helvetica').fillColor(DARK)
-         .text('INR 0', summaryX + 10, summaryTop + 42, { align: 'right', width: W - M - summaryX - 20 });
+         .text(`INR ${taxAmount.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`, summaryX + 10, summaryTop + 42, { align: 'right', width: W - M - summaryX - 20 });
 
       doc.rect(summaryX, summaryTop + 64, W - M - summaryX, 36).fill(BRAND_BLUE);
       doc.font('Helvetica-Bold').fontSize(10).fillColor('#ffffff')
          .text('TOTAL PAID', summaryX + 10, summaryTop + 76);
       doc.font('Helvetica-Bold').fillColor(BRAND_LIME)
-         .text(`INR ${Number(purchase.amount).toLocaleString('en-IN')}`, summaryX + 10, summaryTop + 76, { align: 'right', width: W - M - summaryX - 20 });
+         .text(`INR ${totalAmount.toLocaleString('en-IN')}`, summaryX + 10, summaryTop + 76, { align: 'right', width: W - M - summaryX - 20 });
 
       // ── Status Badge ────────────────────────────────────────────
       doc.rect(M, summaryTop + 8, 110, 26).fill('#e8f5e9').stroke('#a5d6a7');
